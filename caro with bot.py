@@ -79,403 +79,182 @@ class AI:
     def __init__(self, player=2):  # Số đại diện cho AI (thường là 2)
         self.player = player
         self.opponent = 3 - player  # Số đại diện cho đối thủ (thường là 1)
-        self.max_time = 5  # Giới hạn thời gian suy nghĩ (giây)
-        # Sử dụng bộ nhớ đệm để tối ưu hóa hàm evaluate_board
-        self.evaluate_board = lru_cache(maxsize=10000)(self.evaluate_board)
-        self.point_eval = lru_cache(maxsize=10000)(self.point_eval)
-        self.transposition_table = {}  # Bảng chuyển vị để lưu trữ các trạng thái đã đánh giá
-        # opening_book cho các nước đi đầu tiên trên các kích thước bàn cờ khác nhau
-        self.opening_book = {
-            (5, 5): [(2, 2), (2, 3), (3, 2), (3, 3)],  # Các nước đi mở đầu cho bàn cờ 5x5
-            (7, 7): [(3, 3), (3, 4), (4, 3), (4, 4)]  # Các nước đi mở đầu cho bàn cờ 7x7
-        }
 
-    def AI_move(self, main_board):
-        start_time = time.time()  # Bắt đầu đếm thời gian
-        # Kiểm tra opening_book nếu ít hơn 2 nước đi đã được thực hiện
-        if main_board.marked_sqrs < 2 and (main_board.size, main_board.size) in self.opening_book:
-            return random.choice(self.opening_book[(main_board.size, main_board.size)])
 
-        empty_sqrs = main_board.get_empty_sqrs()
-
-        # Quick evaluation for early game (Đánh giá nhanh cho giai đoạn đầu trò chơi khi còn nhiều ô trống bàn cờ)
-        if len(empty_sqrs) > main_board.size * main_board.size - 4:
-            return self.quick_eval(main_board, empty_sqrs)
-
-        # Check for immediate winning moves and blocks (Kiểm tra nước đi chiến thắng ngay lập tức và chặn đối thủ)
-        for row, col in empty_sqrs:
-            if self.is_winning_move(main_board, row, col, self.player):
-                return (row, col)
-        for row, col in empty_sqrs:
-            if self.is_winning_move(main_board, row, col, self.opponent):
-                return (row, col)
-
-        # Check for open threes and other complex strategic positions (Kiểm tra các vị trí chiến lược phức tạp [ví dụ: tạo chuỗi ba mở])
-        strategic_move = self.check_strategic_positions(main_board)
-        if strategic_move:
-            return strategic_move
-
-        # Use iterative deepening within time limit (Sử dụng tìm kiếm sâu dần trong giới hạn thời gian còn lại)
-        return self.iterative_deepening(main_board, 10, self.max_time - (time.time() - start_time))
-
-    def quick_eval(self, board, empty_sqrs):
-        # Đánh giá nhanh bằng cách chọn ô gần trung tâm nhất
-        center = board.size // 2  # Tâm bàn cờ
-        best_move = None
-        best_score = -float('inf')
-
-        for row, col in empty_sqrs:
-            # Tính điểm dựa trên khoảng cách Manhattan đến trung tâm
-            score = -(abs(row - center) + abs(col - center))  # Ưu tiên các nước gần tâm
-            if score > best_score:
-                best_score = score
-                best_move = (row, col)
-
-        return best_move
-
-    def is_winning_move(self, board, row, col, player):
-        # Kiểm tra xem nước đi có dẫn đến chiến thắng không
-        temp_board = copy.deepcopy(board)
-        temp_board.mark_sqr(row, col, player)
-        return temp_board.final_state(row, col) == player  # Kiểm tra nếu là nước thắng
-
-    def check_strategic_positions(self, board):
-        for row in range(board.size):
-            for col in range(board.size):
-                if board.empty_sqr(row, col):
-                    # Kiểm tra xem nước đi có tạo ra chuỗi ba mở cho AI không
-                    if self.is_open_three(board, row, col, self.player):
-                        return (row, col)
-                    # Kiểm tra và chặn chuỗi ba mở của đối thủ
-                    if self.is_open_three(board, row, col, self.opponent):
-                        return (row, col)
-        return None
-
-    def is_open_three(self, board, row, col, player):
-        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
-        for dr, dc in directions:
-            line = self.get_line(board, row, col, dr, dc)
-            if self.is_open_three_pattern(line, player):
-                return True
-        return False
-
-    def is_open_three_pattern(self, line, player):
-        # Mẫu chuỗi ba mở: 0XXX0 (với X là quân của người chơi)
-        pattern = [0, player, player, player, 0]
-        return pattern in [line[i:i + 5] for i in range(len(line) - 4)]
-
-    def get_line(self, board, row, col, dr, dc):
-        # Lấy một dòng các ô từ vị trí (row, col) theo hướng (dr, dc)
-        line = []
-        for i in range(-board.max_item_win + 1, board.max_item_win):
-            r, c = row + i * dr, col + i * dc
-            if 0 <= r < board.size and 0 <= c < board.size:
-                line.append(board.squares[r][c])
-            else:
-                break
-        return line
 #--------------------------------------------------------------------------
-    
-    
-    def point_eval(self, row, col, board):
-        tancong = [0, 2, 4, 20, 100, 105, 110, 115, 120, 130]
-        phongthu = [0, 1, 3, 15, 55, 56, 57, 58, 60, 62]
-        
-        # for row in range(board.size):
-        #     for col in range(board.size):
-        attackPoint = tancong[self.getNgang(row, col, board, self.player)] + tancong[self.getDoc(row, col, board, self.player)] + tancong[self.getCheoThuan(row, col, board, self.player)] + tancong[self.getCheoNguoc(row, col, board, self.player)]
-        defendPoint = phongthu[self.getNgang(row, col, board, self.opponent)] + phongthu[self.getDoc(row, col, board, self.opponent)] + phongthu[self.getCheoThuan(row, col, board, self.opponent)] + phongthu[self.getCheoNguoc(row, col, board, self.opponent)]
-        #print(f"atk: {attackPoint}, def: {defendPoint}")
-        return attackPoint + defendPoint
-    
-    
-    def getNgang(self, row, col, board, player):
-        count = 0 # đếm giá trị giống player
-        block = 0 # Đếm số lần bị chặn
-        
-        # duyệt trước 
-        for i in range(col-1, 0, -1):
-            if board.squares[row][i] == player:
-                count += 1 # đếm số ô giống giá trị vói player
-            elif board.squares[row][i] != 0:
-                block += 1 # bị chặn
-                break
-        # duyệt sau
-        for i in range(col+1, board.size):
-            if board.squares[row][i] == player:
-                count += 1
-            elif board.squares[row][i] != 0:
-                block += 1
-                break
-        
-        # print("Ngang:")
-        # print(count , block)
-        if block == 2:
-            return 0 # Bị chặn cả 2 đầu
-        if (col == 0 or col == board.size - 1) and count < 4:
-            block += 1 # vị trí sát cạnh thì +1 block
-        if count <= block:
-            return 0 # bị chặn nhiều hơn
-        elif count - block >= 3:
-            return count + block # x thắng hoặc o sắp thắng
-        else:
-            return count - block # < 3
-        
-        
-    def getDoc(self, row, col, board, player):
-        count = 0 # đếm giá trị giống player
-        block = 0 # Đếm số lần bị chặn
-        
-        # duyệt trước 
-        for i in range(row-1, 0, -1):
-            if board.squares[i][col] == player:
-                count += 1 # đếm số ô giống giá trị vói player
-            elif board.squares[i][col] != 0:
-                block += 1 # bị chặn
-                break
-        # duyệt sau
-        for i in range(row+1, board.size):
-            if board.squares[i][col] == player:
-                count += 1
-            elif board.squares[i][col] != 0:
-                block += 1
-                break
-        
-        if block == 2:
-            return 0 # Bị chặn cả 2 đầu
-        if( row == 0 or row == board.size - 1) and count < 4:
-            block += 1 # vị trí sát cạnh thì +1 block
-        if count <= block:
-            return 0 # bị chặn nhiều hơn
-        elif count - block >= 3:
-            return count + block 
-        else:
-            return count - block # < 3
-        
 
-    # Đếm trên đường chéo \ (từ dưới lên)
-    def getCheoThuan(self, row, col, board, player):
-        count = 0
-        block = 0
-        for i in range(1, min(row+1, col+1)):
-            if board.squares[row-i][col-i] == player:
-                count += 1
-            elif board.squares[row-i][col-i] != 0:
-                block += 1
-                break
-        for i in range(1, min(board.size - row, board.size - col)):
-            if board.squares[row+i][col+i] == player:
-                count += 1
-            elif board.squares[row+i][col+i] != 0:
-                block += 1
-                break
+    
+    def AI_move_2(self, board):  # AI
+        max_val = float('-inf')  # khởi tạo mặc định là âm vô cùng
+        final_row = -1
+        final_col = -1 
         
-        if block == 2:
-            return 0
-        if (row == 0 or row == board.size - 1 or col == 0 or col == board.size - 1) and count < 4:
-            block += 1
-        if count <= block:
-            return 0
-        elif count - block >= 3:
-            return count + block 
-        else:
-            return count - block # < 3
-    
-    
-    
-    # Đếm trên đường chéo / (từ dưới lên)
-    def getCheoNguoc(self, row, col, board, player):
-        count = 0
-        block = 0
-        for i in range(1, min(row+1, board.size - col)):
-            if board.squares[row-i][col+i] == player:
-                count += 1
-            elif board.squares[row-i][col+i] != 0:
-                block += 1
-                break
-        for i in range(1, min(board.size - row, col+1)):
-            if board.squares[row+i][col-i] == player:
-                count += 1
-            elif board.squares[row+i][col-i] != 0:
-                block += 1
-                break
-        
-        if block == 2:
-            return 0
-        if (row == 0 or row == board.size - 1 or col == 0 or col == board.size - 1) and count < 4:
-            block += 1
-        if count <= block:
-            return 0
-        elif count - block >= 3:
-            return count + block 
-        else:
-            return count - block # < 3
-    
-    
-    
-    def AI_move_2(self, board):
-        max = float('-inf')
-        final_row = final_col = -1
-        for row in range(board.size):
+        # Duyệt các điểm chưa đánh trong bảng để tìm ra điểm tốt nhất (mảng 1 chiều)
+        for row in range(board.size):  # board.size là kích thước bàn cờ (mặc định là 15 ô)
             for col in range(board.size):
-                if board.squares[row][col] == 0:
+                if board.squares[row][col] == 0: # ô được đánh dấu mang giá trị 0 (rỗng) thì đánh X
                     temp_board = copy.deepcopy(board)
                     temp_board.mark_sqr(row, col, self.player)
                     
-                    point = self.point_eval(row, col, temp_board)
+                    mark = self.getMark(row, col, temp_board)
                     
-                    temp_board.mark_sqr(row, col, 0)
-                    
-                    if point > max:
-                        final_row = row
+                    temp_board.mark_sqr(row, col, 0)  # trả giá trị về rỗng
+                    if mark > max_val:  # lưu điểm tốt nhất tìm được
                         final_col = col
-                        max = point
-        print("--------------")
-        print(max)
+                        final_row = row
+                        max_val = mark
+        
         return (final_row, final_col)
+
+
+
+    def getMark(self, row, col, board):
+            # Trọng số đánh giá
+        tancong = [0, 2, 4, 20, 100, 105, 110, 115, 120, 130]
+        phongthu = [0, 1, 3, 15, 55, 56, 57, 58, 60, 62]
+        
+        result = tancong[self.getNgang(row, col, board, self.player)] + tancong[self.getDoc(row, col, board, self.player)] + \
+                tancong[self.getCheo1(row, col, board, self.player)] + tancong[self.getCheo2(row, col, board, self.player)]
+        
+        result += phongthu[self.getNgang(row, col, board, self.opponent)] + phongthu[self.getDoc(row, col, board, self.opponent)] + \
+                phongthu[self.getCheo1(row, col, board, self.opponent)] + phongthu[self.getCheo2(row, col, board, self.opponent)]
+        
+        return result
+
+    # Đếm trên hàng ngang
+    def getNgang(self, row, col, board, player):
+        count = 0  # đếm giá trị giống player
+        block = 0  # Đếm số lần bị chặn
+        
+        # duyệt trước
+        for i in range(col - 1, 0, -1):
+            if board.squares[row][i] == player:
+                count += 1  # nếu board.squares tại vị trí giống giá trị ở điểm hiện tại player thì +1 count
+            else:
+                if board.squares[row][i] != 0:  # nếu board.squares tại vị trí không bằng rỗng thì bị chặn -> +1 block
+                    block += 1
+                break
+        
+        # duyệt sau
+        for i in range(col + 1, board.size):
+            if board.squares[row][i] == player:
+                count += 1
+            else:
+                if board.squares[row][i] != 0:
+                    block += 1
+                break
+        
+        if block == 2:
+            return 0  # Bị chặn cả 2 đầu
+        if (col == 0 or col == board.size - 1) and count < 4:
+            block += 1  # Điểm sát cạnh +1 block
+        if count <= block:
+            return 0  # Bị chặn nhiều hơn
+        elif count - block >= 3:
+            return count + block  # Xảy ra khi x thắng hoặc o sắp thắng
+        else:
+            return count - block  # < 3
+
+    # Đếm trên hàng dọc
+    def getDoc(self, row, col, board, player):
+        count = 0
+        block = 0
+        
+        for i in range(row - 1, 0, -1):
+            if board.squares[i][col] == player:
+                count += 1
+            else:
+                if board.squares[i][col] != 0:
+                    block += 1
+                break
+        
+        for i in range(row + 1, board.size):
+            if board.squares[i][col] == player:
+                count += 1
+            else:
+                if board.squares[i][col] != 0:
+                    block += 1
+                break
+        
+        if block == 2:
+            return 0
+        if (row == 0 or row == board.size - 1) and count < 4:
+            block += 1
+        if count <= block:
+            return 0
+        elif count - block >= 3:
+            return count + block
+        else:
+            return count - block
+
+    # Đếm trên đường chéo / (từ dưới lên)
+    def getCheo1(self, row, col, board, player):
+        count = 0
+        block = 0
+        
+        for i in range(1, min(board.size - col, row + 1)):
+            if board.squares[row - i][col + i] == player:
+                count += 1
+            else:
+                if board.squares[row - i][col + i] != 0:
+                    block += 1
+                break
+        
+        for i in range(1, min(col + 1, board.size - row)):
+            if board.squares[row + i][col - i] == player:
+                count += 1
+            else:
+                if board.squares[row + i][col - i] != 0:
+                    block += 1
+                break
+        
+        if block == 2:
+            return 0
+        if (col == 0 or col == board.size - 1 or row == 0 or row == board.size - 1) and count < 4:
+            block += 1
+        if count <= block:
+            return 0
+        elif count - block >= 3:
+            return count + block
+        else:
+            return count - block
+
+    # Đếm trên đường chéo \ (từ dưới lên)
+    def getCheo2(self, row, col, board, player):
+        count = 0
+        block = 0
+        
+        for i in range(1, min(col + 1, row + 1)):
+            if board.squares[row - i][col - i] == player:
+                count += 1
+            else:
+                if board.squares[row - i][col - i] != 0:
+                    block += 1
+                break
+        
+        for i in range(1, min(board.size - col, board.size - row)):
+            if board.squares[row + i][col + i] == player:
+                count += 1
+            else:
+                if board.squares[row + i][col + i] != 0:
+                    block += 1
+                break
+        
+        if block == 2:
+            return 0
+        if (col == 0 or col == board.size - 1 or row == 0 or row == board.size - 1) and count < 4:
+            block += 1
+        if count <= block:
+            return 0
+        elif count - block >= 3:
+            return count + block
+        else:
+            return count - block
+        
+        
+        
     
 # -----------------------------------------------------
-    
-    def evaluate_board(self, board):
-        score = 0
-        if self.check_win(board, self.player):
-            score += 10000
-        if self.check_win(board, self.opponent):
-            score -= 10000
-        for row in range(board.size):
-            for col in range(board.size):
-                if board.squares[row][col] == self.player:
-                    score += self.evaluate_position(board, row, col, self.player)
-                elif board.squares[row][col] == self.opponent:
-                    score -= self.evaluate_position(board, row, col, self.opponent)
-        return score
-
-    def evaluate_position(self, board, row, col, player):
-        score = 0
-        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
-        for dr, dc in directions:
-            count = 0
-            block_count = 0
-            for delta in range(-3, 4):
-                r = row + delta * dr
-                c = col + delta * dc
-                if 0 <= r < board.size and 0 <= c < board.size:
-                    if board.squares[r][c] == player:
-                        count += 1
-                    elif board.squares[r][c] != 0:
-                        block_count += 1
-                        break
-                else:
-                    block_count += 1
-                    break
-            if block_count < 2:
-                score += count ** 2
-        return score
-
-    def check_win(self, board, player):
-        for row in range(board.size):
-            for col in range(board.size):
-                if board.squares[row][col] == player:
-                    if board.final_state(row, col) == player:
-                        return True
-        return False
-
-    def evaluate_potential_advantages(self, board, player):
-        score = 0
-        opponent = 3 - player
-        for row in range(board.size):
-            for col in range(board.size):
-                if board.squares[row][col] == 0:
-                    score += self.evaluate_future_sequence(board, row, col, player)
-                    score -= self.evaluate_future_sequence(board, row, col, opponent)
-        return score
-
-    def evaluate_future_sequence(self, board, row, col, player):
-        score = 0
-        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
-        for dr, dc in directions:
-            line = self.get_line(board, row, col, dr, dc)
-            score += self.score_potential_sequence(line, player, board.max_item_win)
-        return score
-
-    def score_potential_sequence(self, line, player, max_win):
-        score = 0
-        opponent = 3 - player
-        player_count = line.count(player)
-        empty_count = line.count(0)
-
-        if player_count == max_win - 2 and empty_count == 2:
-            score += 50  # Potential future advantage
-        elif player_count == max_win - 3 and empty_count == 3:
-            score += 10  # Developing sequence
-
-        return score
-
-    def iterative_deepening(self, board, max_depth, max_time):
-        best_move = None
-        start_time = time.time()
-        for depth in range(1, max_depth + 1):
-            if time.time() - start_time > max_time:
-                break
-            score, move = self.minimax(board, depth, -float('inf'), float('inf'), True, start_time)
-            if move:
-                best_move = move
-        return best_move
-
-    def minimax(self, board, depth, alpha, beta, maximizing, start_time):
-        # Điều kiện dừng: đạt độ sâu 0, bàn cờ đầy, hoặc hết thời gian
-        if depth == 0 or board.is_full() or time.time() - start_time > self.max_time:
-            return self.evaluate_board(board), None
-
-        empty_sqrs = board.get_empty_sqrs()
-        # Sắp xếp các nước đi theo thứ tự ưu tiên để cắt tỉa alpha-beta hiệu quả hơn
-        empty_sqrs.sort(key=lambda move: self.move_ordering_score(board, move[0], move[1]), reverse=maximizing)
-
-        if maximizing:
-            max_eval = -float('inf')
-            best_move = None
-            for (row, col) in empty_sqrs:
-                temp_board = copy.deepcopy(board)
-                temp_board.mark_sqr(row, col, self.player)
-                eval, _ = self.minimax(temp_board, depth - 1, alpha, beta, False, start_time)
-                if eval > max_eval:
-                    max_eval = eval
-                    best_move = (row, col)
-                alpha = max(alpha, eval)
-                if beta <= alpha:
-                    break  # Cắt tỉa alpha
-            return max_eval, best_move
-        else:
-            min_eval = float('inf')
-            best_move = None
-            for (row, col) in empty_sqrs:
-                temp_board = copy.deepcopy(board)
-                temp_board.mark_sqr(row, col, self.opponent)
-                eval, _ = self.minimax(temp_board, depth - 1, alpha, beta, True, start_time)
-                if eval < min_eval:
-                    min_eval = eval
-                    best_move = (row, col)
-                beta = min(beta, eval)
-                if beta <= alpha:
-                    break  # Cắt tỉa beta
-            return min_eval, best_move
-
-    def move_ordering_score(self, board, row, col):
-        score = 0
-        center = board.size // 2
-        # Ưu tiên các nước đi gần trung tâm
-        score += 10 - (abs(row - center) + abs(col - center))
-
-        # Prioritize moves that form or block potential advantages (Ưu tiên các nước đi tạo ra hoặc chặn các lợi thế tiềm năng)
-        temp_board = copy.deepcopy(board)
-        temp_board.mark_sqr(row, col, self.player)
-        score += self.evaluate_potential_advantages(temp_board, self.player)
-
-        temp_board = copy.deepcopy(board)
-        temp_board.mark_sqr(row, col, self.opponent)
-        score += self.evaluate_potential_advantages(temp_board, self.opponent)
-
-        return score
 
 
 class Game(tk.Tk):
