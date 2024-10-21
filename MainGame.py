@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import messagebox
 from Board import Board
 from AI import AI
+
 # --- Constants ---
 DEFAULT_WIDTH = 800  # Chiều rộng mặc định của cửa sổ
 DEFAULT_HEIGHT = 800  # Chiều cao mặc định của cửa sổ
@@ -11,6 +12,8 @@ BG_COLOR = "#FFEBEE"  # Lavender blush background color
 LINE_COLOR = "#0D1B2A"  # Rich black line color
 CIRC_COLOR = "#FF101F"  # Red circle (O) color
 CROSS_COLOR = "#3E92CC"  # Celestial blue cross (X)
+BUTTON_COLOR = "#F8BBD0"  # Orchid pink button color
+BUTTON_TEXT_COLOR = "#0D1B2A"  # Rich black text color
 
 WIN_LINE_COLOR = "#F5A742"  # Màu đường thắng (màu cam) F5A742
 WIN_LINE_WIDTH = 10  # Độ dày của đường thắng
@@ -39,19 +42,19 @@ class Game(tk.Tk):
         self.running = True  # Trạng thái trò chơi đang chạy
         self.ai_thinking = False  # Trạng thái AI đang suy nghĩ
         self.show_lines()  # Vẽ lưới bàn cờ
-        self.canvas.bind("<Button-1>", self.handle_click)  # Ràng buộc sự kiện click chuột trên canvas
+        self.canvas.bind("<Button-1>", self.handle_click)  # Ràng buộc sự kiện click chuột trái trên canvas
 
         # Reset button
-        self.reset_button = tk.Button(self, text="Chơi lại", command=self.reset, font=("Times New Roman", 16, "bold"),
-                                      padx=20, pady=10)
+        self.reset_button = tk.Button(self, text="Chơi lại", command=self.reset, font=("Helvetica", 16, "bold"),
+                                      padx=20, pady=10, fg=BUTTON_TEXT_COLOR, bg=BUTTON_COLOR)
         self.reset_button.pack(side=tk.LEFT, padx=20, pady=20)
         # Back button
-        self.back_button = tk.Button(self, text="Trở về", command=self.back, font=("Times New Roman", 16, "bold"),
-                                     padx=20, pady=10)
+        self.back_button = tk.Button(self, text="Trở về", command=self.back, font=("Helvetica", 16, "bold"),
+                                     padx=20, pady=10, fg=BUTTON_TEXT_COLOR, bg=BUTTON_COLOR)
         self.back_button.pack(side=tk.RIGHT, padx=20, pady=20)
 
         # Status label
-        self.status_label = tk.Label(self, text="", font=("Times New Roman", 20))
+        self.status_label = tk.Label(self, text="", font=("Helvetica", 20))
         self.status_label.pack(pady=10)
 
     # Hiển thị các đường kẻ trên bảng
@@ -66,7 +69,7 @@ class Game(tk.Tk):
 
     # Vẽ ký hiệu X hoặc O lên bàn cờ
     def draw_fig(self, row, col):
-        if self.board.squares[row][col] == 1:
+        if self.board.getPosition(row, col) == 1:
             start_desc = (col * self.sqsize + self.offset, row * self.sqsize + self.offset)
             end_desc = (col * self.sqsize + self.sqsize - self.offset, row * self.sqsize + self.sqsize - self.offset)
             self.canvas.create_line(*start_desc, *end_desc, fill=CROSS_COLOR, width=self.cross_width)
@@ -74,7 +77,7 @@ class Game(tk.Tk):
             start_asc = (col * self.sqsize + self.offset, row * self.sqsize + self.sqsize - self.offset)
             end_asc = (col * self.sqsize + self.sqsize - self.offset, row * self.sqsize + self.offset)
             self.canvas.create_line(*start_asc, *end_asc, fill=CROSS_COLOR, width=self.cross_width)
-        elif self.board.squares[row][col] == 2:
+        elif self.board.getPosition(row, col) == 2:
             center = (col * self.sqsize + self.sqsize // 2, row * self.sqsize + self.sqsize // 2)
             self.canvas.create_oval(center[0] - self.radius, center[1] - self.radius,
                                     center[0] + self.radius, center[1] + self.radius,
@@ -82,7 +85,7 @@ class Game(tk.Tk):
 
     def make_move(self, row, col):
         if self.board.empty_sqr(row, col):
-            self.board.mark_sqr(row, col, self.player)
+            self.board.setPosition(row, col, self.player)
             self.draw_fig(row, col)
             self.canvas.update()  # Cập nhật canvas ngay lập tức
             self.next_turn()
@@ -113,11 +116,11 @@ class Game(tk.Tk):
     def is_over(self, row, col):
         result = self.board.final_state(row, col)
         if result != 0:
-            winner = "Người chơi 1" if result == 1 else "Người chơi 2"
+            winner = "Người chơi 1" if result == 1 else "AI"
             self.draw_winning_line()
+            self.status_label.config(text=f"{winner} đã thắng")  # Cập nhật status label
             messagebox.showinfo("Kết quả", f"{winner} đã thắng")  # Hiển thị hộp thoại thông báo
             self.running = False
-            self.status_label.config(text=f"{winner} đã thắng")  # Cập nhật status label
             return True
         elif self.board.is_full():  # Hòa
             messagebox.showinfo("Kết quả", "Hòa")

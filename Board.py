@@ -49,14 +49,6 @@ class Board:
                     start = None
         return 0
 
-    # Đánh dấu ô tại vị trí `row`, `col` với giá trị `player`
-    def mark_sqr(self, row, col, player):
-        self.squares[row][col] = player  # Đánh dấu ô với người chơi
-        if player != 0:
-            self.marked_sqrs += 1  # Tăng số ô đã đánh dấu
-        else:
-            self.marked_sqrs -= 1
-
     def empty_sqr(self, row, col):
         return self.squares[row][col] == 0  # Tăng số ô đã đánh dấu
 

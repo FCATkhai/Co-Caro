@@ -1,10 +1,10 @@
 import numpy as np
 
-
+# Lớp bảng đánh giá: mỗi vị trí trong bảng sẽ lưu điểm tương ứng với vị trí trong bảng trạng thái (Board)
 class EvalBoard:
     def __init__(self, size=20) -> None:
         self.size = size
-        self.evaluationBoard = 0
+        self.evaluationBoard = 0 # lưu điểm cao nhất tìm được
         self.EBoard = np.zeros((size, size), dtype=int)
 
     def resetBoard(self):
@@ -15,6 +15,7 @@ class EvalBoard:
     def setPosition(self, row, col, diem):
         self.EBoard[row][col] = diem
 
+    # Trả về vị trí có điểm cao nhất, đồng thời lưu điểm cao nhất đó vào evaluationBoard
     def maxPos(self):
         max = 0  # diem max
         point = (-1, -1)
