@@ -7,8 +7,7 @@ class CaroUI:
         self.root = root
         self.root.title("TRÍ TUỆ NHÂN TẠO NHÓM 12")
 
-        # Đặt kích thước cửa sổ lớn hơn để chứa bàn cờ 20x20
-        self.root.geometry("800x800")  # Tăng kích thước cửa sổ lên 800x800 (hoặc lớn hơn nếu cần)
+        self.root.geometry("800x800")  # Kích thước cửa sổ 800x800
 
         # Định nghĩa màu sắc
         self.bg_color = "#FFEBEE"  # Lavender blush background color
@@ -28,7 +27,7 @@ class CaroUI:
         self.label = tk.Label(root, text="NHÓM 12", font=("Helvetica", 24, "bold"), fg=self.text_color, bg=self.bg_color)
         self.label.pack(pady=5)
 
-        # Chế độ chơi (mặc định chỉ Người đấu A.I)
+        # Chế độ chơi (chỉ Người đấu AI)
         self.mode_label = tk.Label(root, text="Chế độ chơi: Người đấu AI", font=self.custom_font, fg=self.text_color,
                                    bg=self.bg_color)
         self.mode_label.pack(pady=10)

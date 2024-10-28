@@ -133,7 +133,8 @@ class AI:
         if depth >= self.maxDepth:
             return value
 
-        self.evalChessBoard(player=self.AI, boardState=boardState, eBoard=self.eBoard)  # Cập nhật bảng đánh giá
+        # Cập nhật bảng đánh giá
+        self.evalChessBoard(player=self.AI, boardState=boardState, eBoard=self.eBoard)  
         # Tìm những nút con có khả năng đánh cao nhất
         childList = []
         for i in range(self.maxMove):
@@ -161,8 +162,9 @@ class AI:
         value = self.eBoard.evaluationBoard
         if depth >= self.maxDepth:
             return value
-
-        self.evalChessBoard(player=self.opponent, boardState=boardState, eBoard=self.eBoard)  # Cập nhật bảng đánh giá
+        
+        # Cập nhật bảng đánh giá
+        self.evalChessBoard(player=self.opponent, boardState=boardState, eBoard=self.eBoard)  
         # Tìm những nút con có khả năng đánh cao nhất
         childList = []
         for i in range(self.maxMove):

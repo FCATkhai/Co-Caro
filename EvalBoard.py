@@ -1,6 +1,7 @@
 import numpy as np
 
-# Lớp bảng đánh giá: mỗi vị trí trong bảng sẽ lưu điểm tương ứng với vị trí trong bảng trạng thái (Board)
+# Lớp bảng đánh giá: 
+# mỗi vị trí trong bảng sẽ lưu điểm tương ứng với vị trí trong bảng trạng thái (Board)
 class EvalBoard:
     def __init__(self, size=20) -> None:
         self.size = size

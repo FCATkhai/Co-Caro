@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Board:
-    def __init__(self, size):
+    def __init__(self, size=20):
         self.size = size  # Kích thước bàn cờ (NxN)
         self.squares = np.zeros((size, size), dtype=int)  # Khởi tạo bàn cờ với các ô vuông giá trị 0
         self.marked_sqrs = 0  # Số ô đã được đánh dấu
@@ -30,7 +30,7 @@ class Board:
             count = 0  # Khởi tạo biến đếm số ô liên tiếp
             start = None
             for delta in range(-self.max_item_win + 1,
-                               self.max_item_win):  # Duyệt qua khoảng giá trị từ -max_item_win + 1 đến max_item_win
+                               self.max_item_win):
                 r = marked_row + delta * dr  # Tính toán vị trí dọc
                 c = marked_col + delta * dc  # Tính toán vị trí ngang
                 if 0 <= r < self.size and 0 <= c < self.size:

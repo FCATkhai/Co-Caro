@@ -83,19 +83,6 @@ class Game(tk.Tk):
                                     center[0] + self.radius, center[1] + self.radius,
                                     outline=CIRC_COLOR, width=self.circ_width)
 
-    def make_move(self, row, col):
-        if self.board.empty_sqr(row, col):
-            self.board.setPosition(row, col, self.player)
-            self.draw_fig(row, col)
-            self.canvas.update()  # Cập nhật canvas ngay lập tức
-            self.next_turn()
-            return True
-        return False
-
-    def next_turn(self):
-        self.player = self.player % 2 + 1  # Chuyển lượt người chơi
-        self.status_label.config(text=f"Lượt của Người chơi {self.player}")  # Cập nhật status label
-
     # Hàm kẻ đường win
     def draw_winning_line(self):
         if self.board.winning_line:
@@ -112,6 +99,19 @@ class Game(tk.Tk):
             end_x += delta_x * (WIN_LINE_LENGTH - 1) / 2
             end_y += delta_y * (WIN_LINE_LENGTH - 1) / 2
             self.canvas.create_line(start_x, start_y, end_x, end_y, fill=WIN_LINE_COLOR, width=WIN_LINE_WIDTH)
+
+    def make_move(self, row, col):
+        if self.board.empty_sqr(row, col):
+            self.board.setPosition(row, col, self.player)
+            self.draw_fig(row, col)
+            self.canvas.update()  # Cập nhật canvas ngay lập tức
+            self.next_turn()
+            return True
+        return False
+
+    def next_turn(self):
+        self.player = self.player % 2 + 1  # Chuyển lượt người chơi
+        self.status_label.config(text=f"Lượt của Người chơi {self.player}")  # Cập nhật status label
 
     def is_over(self, row, col):
         result = self.board.final_state(row, col)
