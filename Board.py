@@ -58,3 +58,19 @@ class Board:
 
     def is_full(self):
         return self.marked_sqrs == self.size * self.size  # Kiểm tra bàn cờ có đầy không
+
+    def printBoard(self):
+        print("  ", end="")
+        for i in range(self.size):
+            print(i, end=" ")
+        print()
+        j = 0
+        for r in range(self.size):
+            print(j, end=" ")
+            j += 1
+            for c in range(self.size):
+                print(self.getPosition(r, c), end=" ")
+            print()
+
+    def getPotentialPosition(self):
+        pass

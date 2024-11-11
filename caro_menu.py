@@ -21,7 +21,7 @@ class CaroUI:
 
         # Tiêu đề
         self.label = tk.Label(root, text="CHÀO MỪNG ĐẾN CỜ CARO", font=("Helvetica", 24, "bold"), fg=self.text_color,
-                              bg=self.bg_color)
+                            bg=self.bg_color)
         self.label.pack(pady=5)
 
         self.label = tk.Label(root, text="NHÓM 12", font=("Helvetica", 24, "bold"), fg=self.text_color, bg=self.bg_color)

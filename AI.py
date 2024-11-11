@@ -24,7 +24,7 @@ class AI:
                     if boardState.getPosition(row, col + i) == self.opponent:  # neu quan do la cua human
                         eHuman += 1  # tang so quan human
                     if boardState.getPosition(row, col + i) == self.AI:  # neu quan do la cua AI
-                        eAI += 1  # tang so quan PC
+                        eAI += 1  # tang so quan AI
 
                 # Trong vong 5 o khong co quan dich
                 if eHuman * eAI == 0 and eHuman != eAI:
