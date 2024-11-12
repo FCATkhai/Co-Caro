@@ -102,5 +102,7 @@ def evaluateBoard(boardState, player):
                 elif opponent_count + count_empty == win_length:
                     opponent_win_lines += opponent_count ** 2
 
+    print("player score: ", player_win_lines)
+    print("opponent score: ", opponent_win_lines)
     return player_win_lines - opponent_win_lines
 
