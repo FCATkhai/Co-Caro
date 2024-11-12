@@ -154,7 +154,7 @@ class CalculateScore_menu(tk.Tk):
 
     def evalBoard(self):
 
-        score = evaluateBoard(self.board, self.player)
+        score = evaluateBoard(self.board, 2)
         self.option_add('*Dialog.msg.font', 'Helvetica 18')
         custom_message_box("Điểm", f"Điểm của trạng thái bàn cờ là {score:.2f}")
         self.option_clear()

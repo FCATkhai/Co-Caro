@@ -1,6 +1,7 @@
 import copy
 from EvalBoard import EvalBoard
 
+
 class AI:
     def __init__(self, player=2):  # Số đại diện cho AI (thường là 2)
         self.AI = player

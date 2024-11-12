@@ -22,7 +22,7 @@ WIN_LINE_LENGTH = 1.2  # Tỷ lệ nhân để kéo dài đường kẻ
 
 
 class Game(tk.Tk):
-    def __init__(self, size=6):
+    def __init__(self, size=10):
         super().__init__()
         self.title("TRÍ TUỆ NHÂN TẠO NHÓM 12")  # Tiêu đề cửa sổ
         self.geometry(f"{DEFAULT_WIDTH}x{DEFAULT_HEIGHT + 100}")  # Kích thước cửa sổ
